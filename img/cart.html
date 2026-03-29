@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<header>
+    <a href="./index.html">
+        <div class="logo">META</div>
+    </a>
+    <nav>
+        <a href="./index.html">Home</a>
+        <a href="./detail_product.html">Chi tiết sản phẩm</a>
+        <a href="./about.html">Giới thiệu</a>
+        <a href="./contact.html">Liên hệ</a>
+        <a href="./cart.html" class="active">Giỏ hàng</a>
+    </nav>
+</header>
+
+<section class="cart">
+    <h2>Giỏ hàng của bạn</h2>
+
+    <!-- SẢN PHẨM 1 -->
+    <div class="cart-item">
+        <img src="hinh_san_pham_801f7fc844424255bd320e237bd4af95.png" alt="Nồi cơm điện">
+        <div class="cart-info">
+            <h3>Nồi cơm điện</h3>
+            <p class="price" data-price="1500000">1.500.000đ</p>
+        </div>
+        <div class="cart-quantity">
+            <input type="number" value="1" min="1" onchange="updateTotal()">
+        </div>
+        <button class="remove" onclick="removeItem(this)">Xóa</button>
+    </div>
+
+    <!-- SẢN PHẨM 2 -->
+    <div class="cart-item">
+        <img src="may-xay-sinh-to-vitamix-750-s1.jpg" alt="Máy xay sinh tố">
+        <div class="cart-info">
+            <h3>Máy xay sinh tố</h3>
+            <p class="price" data-price="800000">800.000đ</p>
+        </div>
+        <div class="cart-quantity">
+            <input type="number" value="1" min="1" onchange="updateTotal()">
+        </div>
+        <button class="remove" onclick="removeItem(this)">Xóa</button>
+    </div>
+
+    <!-- TỔNG TIỀN -->
+    <div class="cart-total">
+        <h3>Tổng tiền: <span id="total">0đ</span></h3>
+        <button class="checkout">Thanh toán</button>
+    </div>
+</section>
+
+<footer>
+    <p>© 2025 META Store</p>
+</footer>
+
+<script>
+    function updateTotal() {
+        let total = 0;
+        const items = document.querySelectorAll(".cart-item");
+
+        items.forEach(item => {
+            const price = item.querySelector(".price").dataset.price;
+            const quantity = item.querySelector("input").value;
+            total += price * quantity;
+        });
+
+        document.getElementById("total").innerText =
+            total.toLocaleString("vi-VN") + "đ";
+    }
+
+    function removeItem(button) {
+        button.parentElement.remove();
+        updateTotal();
+    }
+
+    updateTotal();
+</script>
+
+</body>
+</html>
