@@ -6,38 +6,90 @@ import {
     onSnapshot, 
     updateDoc, 
     deleteDoc, 
-    doc, 
-    products 
-} from "./firebase-config.js";
+    doc 
+} from "../firebase-config.js";
 
+// References đến các Collection
 const ordersRef = collection(db, "orders");
+const productsRef = collection(db, "products");
+
 const STATUS_OPTIONS = ["Chờ xử lý", "Đang pha chế", "Đang giao", "Đã giao"];
 
-// 1. RENDER THỰC ĐƠN TỰ ĐỘNG TỪ MẢNG PRODUCTS
-function renderMenu() {
+// Hàm phụ trợ chống XSS
+function escapeHtml(value) {
+    if (!value) return "";
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+// ==========================================
+// 1. RENDER THỰC ĐƠN REALTIME TỪ FIRESTORE
+// ==========================================
+function listenToProducts() {
     const menuContainer = document.getElementById("menuContainer");
     if (!menuContainer) return;
 
-    menuContainer.innerHTML = products.map(item => `
-        <div class="bg-white rounded-xl shadow overflow-hidden flex flex-col justify-between hover:shadow-lg transition">
-            <img src="${item.image}" alt="${item.name}" class="w-full h-48 object-cover bg-gray-200">
-            <div class="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800">${item.name}</h3>
-                    <p class="text-blue-600 font-bold text-md mt-1">${item.price.toLocaleString('vi-VN')} VNĐ</p>
+    onSnapshot(productsRef, (snapshot) => {
+        if (snapshot.empty) {
+            menuContainer.innerHTML = `<p class="col-span-full text-center text-gray-500 py-8">Chưa có sản phẩm nào trong thực đơn.</p>`;
+            return;
+        }
+
+        const productsList = [];
+        snapshot.forEach((docSnap) => {
+            productsList.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        menuContainer.innerHTML = productsList.map(item => {
+            const name = item.name || item.title || "Món uống";
+            const price = Number(item.price) || 0;
+            const image = item.image || item.imageUrl || "https://via.placeholder.com/300x200?text=No+Image";
+
+            return `
+                <div class="bg-white rounded-xl shadow overflow-hidden flex flex-col justify-between hover:shadow-lg transition">
+                    <img src="${escapeHtml(image)}" alt="${escapeHtml(name)}" class="w-full h-48 object-cover bg-gray-200">
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">${escapeHtml(name)}</h3>
+                            <p class="text-blue-600 font-bold text-md mt-1">${price.toLocaleString('vi-VN')} VNĐ</p>
+                        </div>
+                        <button 
+                            class="btn-quick-order mt-4 w-full bg-amber-700 hover:bg-amber-800 text-white py-2 rounded-lg font-medium transition text-sm active:scale-95"
+                            data-id="${item.id}"
+                        >
+                            🛒 Đặt món ngay
+                        </button>
+                    </div>
                 </div>
-                <button onclick="window.quickOrder('${item.name}', ${item.price})" class="mt-4 w-full bg-amber-700 hover:bg-amber-800 text-white py-2 rounded-lg font-medium transition text-sm">
-                    🛒 Đặt món ngay
-                </button>
-            </div>
-        </div>
-    `).join('');
+            `;
+        }).join('');
+
+        // Lưu danh sách vào Map để gọi khi click, tránh bị vỡ chuỗi do dấu nháy
+        const productMap = new Map(productsList.map(p => [p.id, p]));
+
+        menuContainer.querySelectorAll(".btn-quick-order").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const p = productMap.get(btn.dataset.id);
+                if (p) {
+                    window.quickOrder(p.name || p.title, Number(p.price) || 0);
+                }
+            });
+        });
+    }, (error) => {
+        console.error("Lỗi tải thực đơn Firestore:", error);
+    });
 }
 
-// Gọi render Menu ngay khi file nạp xong
-renderMenu();
+// Khởi chạy lắng nghe Thực đơn
+listenToProducts();
 
-// 2. KHỞI TẠO CÁC HÀM XỬ LÝ GIAO DIỆN (Gắn vào window để gọi từ HTML)
+// ==========================================
+// 2. CÁC HÀM XỬ LÝ GIAO DIỆN (MODAL & QUICK ORDER)
+// ==========================================
 const statusSelectInModal = document.getElementById("status");
 if (statusSelectInModal) {
     statusSelectInModal.innerHTML = STATUS_OPTIONS.map(st => `<option value="${st}">${st}</option>`).join('');
@@ -55,60 +107,72 @@ window.toggleModal = (show) => {
 };
 
 window.quickOrder = (productName, price) => {
-    document.getElementById("product").value = productName;
-    document.getElementById("total").value = price;
+    const prodInput = document.getElementById("product");
+    const totalInput = document.getElementById("total");
+    if (prodInput) prodInput.value = productName;
+    if (totalInput) totalInput.value = price;
     window.toggleModal(true);
 };
 
-// 3. LẮNG NGHE REALTIME FIRESTORE
-onSnapshot(ordersRef, (snapshot) => {
+// ==========================================
+// 3. LẮNG NGHE REALTIME ĐƠN HÀNG (QUẢN LÝ)
+// ==========================================
+function listenToOrders() {
     const tableBody = document.getElementById("orderTableBody");
-    if (!tableBody) return;
-    tableBody.innerHTML = "";
+    if (!tableBody) return; // Nếu không ở trang admin/quản lý thì bỏ qua
 
-    snapshot.forEach((docSnap) => {
-        const order = docSnap.data();
-        const id = docSnap.id;
+    onSnapshot(ordersRef, (snapshot) => {
+        tableBody.innerHTML = "";
 
-        let statusColor = "bg-yellow-100 text-yellow-800";
-        if (order.status === "Đang pha chế") statusColor = "bg-orange-100 text-orange-800";
-        if (order.status === "Đang giao") statusColor = "bg-blue-100 text-blue-800";
-        if (order.status === "Đã giao") statusColor = "bg-green-100 text-green-800";
+        snapshot.forEach((docSnap) => {
+            const order = docSnap.data();
+            const id = docSnap.id;
 
-        const optionsHTML = STATUS_OPTIONS.map(st => 
-            `<option value="${st}" ${order.status === st ? 'selected' : ''}>${st}</option>`
-        ).join('');
+            let statusColor = "bg-yellow-100 text-yellow-800";
+            if (order.status === "Đang pha chế") statusColor = "bg-orange-100 text-orange-800";
+            if (order.status === "Đang giao") statusColor = "bg-blue-100 text-blue-800";
+            if (order.status === "Đã giao") statusColor = "bg-green-100 text-green-800";
 
-        const row = `
-            <tr class="hover:bg-gray-50 transition">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">#${id.substring(0, 6)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.customerName}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.product}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${Number(order.total).toLocaleString('vi-VN')} đ</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
-                        ${order.status}
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <select onchange="window.updateStatus('${id}', this.value)" class="border rounded px-2 py-1 bg-white text-gray-700 shadow-sm focus:outline-none border-gray-300 text-xs">
-                        ${optionsHTML}
-                    </select>
-                    <button onclick="window.deleteOrder('${id}')" class="text-red-600 hover:text-red-900 font-medium text-xs ml-2">Xóa</button>
-                </td>
-            </tr>
-        `;
-        tableBody.innerHTML += row;
+            const optionsHTML = STATUS_OPTIONS.map(st => 
+                `<option value="${st}" ${order.status === st ? 'selected' : ''}>${st}</option>`
+            ).join('');
+
+            const row = `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">#${id.substring(0, 6)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${escapeHtml(order.customerName)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(order.product)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${Number(order.total).toLocaleString('vi-VN')} đ</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
+                            ${escapeHtml(order.status)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <select onchange="window.updateStatus('${id}', this.value)" class="border rounded px-2 py-1 bg-white text-gray-700 shadow-sm focus:outline-none border-gray-300 text-xs">
+                            ${optionsHTML}
+                        </select>
+                        <button onclick="window.deleteOrder('${id}')" class="text-red-600 hover:text-red-900 font-medium text-xs ml-2">Xóa</button>
+                    </td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
     });
-});
+}
 
+// Khởi chạy lắng nghe Đơn hàng
+listenToOrders();
+
+// ==========================================
 // 4. CÁC THAO TÁC CRUD
+// ==========================================
 window.addOrder = async (event) => {
     event.preventDefault();
-    const customerName = document.getElementById("customerName").value;
-    const product = document.getElementById("product").value;
-    const total = document.getElementById("total").value;
-    const status = document.getElementById("status").value;
+    const customerName = document.getElementById("customerName")?.value || "";
+    const product = document.getElementById("product")?.value || "";
+    const total = document.getElementById("total")?.value || 0;
+    const status = document.getElementById("status")?.value || "Chờ xử lý";
 
     try {
         await addDoc(ordersRef, {
