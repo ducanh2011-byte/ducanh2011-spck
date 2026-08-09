@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Cà Phê</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans antialiased min-h-screen">
+
+    <div class="container mx-auto p-6 space-y-8">
+        
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-xl shadow-sm">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">☕ Quản lý Đơn hàng & Thực đơn</h1>
+                <p class="text-gray-500 text-sm mt-1">Hệ thống gọi món và quản lý realtime</p>
+            </div>
+            <button onclick="window.toggleModal(true)" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow font-medium transition flex items-center gap-2">
+                <span>+</span> Thêm đơn hàng mới
+            </button>
+        </div>
+
+        <!-- SECTION 1: DANH SÁCH SẢN PHẨM (MENU) -->
+        <div>
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                🍹 Thực đơn đồ uống
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                
+                <!-- Món 1 -->
+                <div class="bg-white rounded-xl shadow overflow-hidden flex flex-col justify-between hover:shadow-lg transition">
+                    <img src="cau-hoi-khi-lam-ca-phe-trung-removebg-preview.png" alt="Cà phê trứng" class="w-full h-48 object-cover bg-gray-200">
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Cà phê trứng</h3>
+                            <p class="text-blue-600 font-bold text-md mt-1">20.000 VNĐ</p>
+                        </div>
+                        <button onclick="window.quickOrder('Cà phê trứng', 20000)" class="mt-4 w-full bg-amber-700 hover:bg-amber-800 text-white py-2 rounded-lg font-medium transition text-sm">
+                            🛒 Đặt món ngay
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Món 2 -->
+                <div class="bg-white rounded-xl shadow overflow-hidden flex flex-col justify-between hover:shadow-lg transition">
+                    <img src="a15-removebg-preview.png" alt="Cà phê sữa" class="w-full h-48 object-cover bg-gray-200">
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Cà phê sữa</h3>
+                            <p class="text-blue-600 font-bold text-md mt-1">25.000 VNĐ</p>
+                        </div>
+                        <button onclick="window.quickOrder('Cà phê sữa', 25000)" class="mt-4 w-full bg-amber-700 hover:bg-amber-800 text-white py-2 rounded-lg font-medium transition text-sm">
+                            🛒 Đặt món ngay
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Món 3 -->
+                <div class="bg-white rounded-xl shadow overflow-hidden flex flex-col justify-between hover:shadow-lg transition">
+                    <img src="tra-chanh-kim-quat-removebg-preview.png" alt="Trà chanh" class="w-full h-48 object-cover bg-gray-200">
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Trà chanh</h3>
+                            <p class="text-blue-600 font-bold text-md mt-1">15.000 VNĐ</p>
+                        </div>
+                        <button onclick="window.quickOrder('Trà chanh', 15000)" class="mt-4 w-full bg-amber-700 hover:bg-amber-800 text-white py-2 rounded-lg font-medium transition text-sm">
+                            🛒 Đặt món ngay
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SECTION 2: BẢNG QUẢN LÝ ĐƠN HÀNG -->
+        <div>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">📋 Danh sách đơn hàng</h2>
+            <div class="bg-white rounded-xl shadow overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã Đơn</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách hàng</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng tiền</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Dữ liệu Firestore sẽ cập nhật realtime tại đây -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL THÊM ĐƠN HÀNG -->
+    <div id="orderModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+        <div class="relative p-6 border w-96 shadow-lg rounded-xl bg-white">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Thêm Đơn Hàng</h3>
+            <form id="orderForm" onsubmit="window.addOrder(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Tên khách hàng</label>
+                    <input type="text" id="customerName" required placeholder="Nhập tên khách..." class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Sản phẩm</label>
+                    <input type="text" id="product" required placeholder="Tên sản phẩm" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Tổng tiền (VNĐ)</label>
+                    <input type="number" id="total" required placeholder="0" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Trạng thái</label>
+                    <select id="status" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <!-- Render từ JS -->
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="window.toggleModal(false)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg">Hủy</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT XỬ LÝ FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            onSnapshot, 
+            updateDoc, 
+            deleteDoc, 
+            doc 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Cấu hình Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyADANpAqzaifukcbwwNIF6LubLxYI7GnTw",
+            authDomain: "jsi34-e00ed.firebaseapp.com",
+            projectId: "jsi34-e00ed",
+            storageBucket: "jsi34-e00ed.firebasestorage.app",
+            messagingSenderId: "958660106818",
+            appId: "1:958660106818:web:7dc1bdc5a2415ac4cdebdb",
+            measurementId: "G-KJVJGMN45K"
+        };
+
+        // Khởi tạo Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const ordersRef = collection(db, "orders");
+
+        // Trạng thái đơn hàng
+        const STATUS_OPTIONS = ["Chờ xử lý", "Đang pha chế", "Đang giao", "Đã giao"];
+
+        // Đổ danh sách trạng thái vào select của modal
+        const statusSelectInModal = document.getElementById("status");
+        statusSelectInModal.innerHTML = STATUS_OPTIONS.map(st => `<option value="${st}">${st}</option>`).join('');
+
+        // Bật/Tắt Modal
+        window.toggleModal = (show) => {
+            const modal = document.getElementById("orderModal");
+            if (show) {
+                modal.classList.remove("hidden");
+            } else {
+                modal.classList.add("hidden");
+                document.getElementById("orderForm").reset();
+            }
+        };
+
+        // Đặt hàng nhanh từ Menu sản phẩm
+        window.quickOrder = (productName, price) => {
+            document.getElementById("product").value = productName;
+            document.getElementById("total").value = price;
+            window.toggleModal(true);
+        };
+
+        // LẮNG NGHE REALTIME TỪ FIRESTORE
+        onSnapshot(ordersRef, (snapshot) => {
+            const tableBody = document.getElementById("orderTableBody");
+            tableBody.innerHTML = "";
+
+            snapshot.forEach((docSnap) => {
+                const order = docSnap.data();
+                const id = docSnap.id;
+
+                let statusColor = "bg-yellow-100 text-yellow-800";
+                if (order.status === "Đang pha chế") statusColor = "bg-orange-100 text-orange-800";
+                if (order.status === "Đang giao") statusColor = "bg-blue-100 text-blue-800";
+                if (order.status === "Đã giao") statusColor = "bg-green-100 text-green-800";
+
+                const optionsHTML = STATUS_OPTIONS.map(st => 
+                    `<option value="${st}" ${order.status === st ? 'selected' : ''}>${st}</option>`
+                ).join('');
+
+                const row = `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">#${id.substring(0, 6)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.customerName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.product}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${Number(order.total).toLocaleString('vi-VN')} đ</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
+                                ${order.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                            <select onchange="window.updateStatus('${id}', this.value)" class="border rounded px-2 py-1 bg-white text-gray-700 shadow-sm focus:outline-none border-gray-300 text-xs">
+                                ${optionsHTML}
+                            </select>
+                            <button onclick="window.deleteOrder('${id}')" class="text-red-600 hover:text-red-900 font-medium text-xs ml-2">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        });
+
+        // THÊM ĐƠN HÀNG
+        window.addOrder = async (event) => {
+            event.preventDefault();
+            const customerName = document.getElementById("customerName").value;
+            const product = document.getElementById("product").value;
+            const total = document.getElementById("total").value;
+            const status = document.getElementById("status").value;
+
+            try {
+                await addDoc(ordersRef, {
+                    customerName,
+                    product,
+                    total: Number(total),
+                    status,
+                    createdAt: new Date()
+                });
+                window.toggleModal(false);
+            } catch (error) {
+                console.error("Lỗi khi thêm đơn hàng: ", error);
+            }
+        };
+
+        // CẬP NHẬT TRẠNG THÁI
+        window.updateStatus = async (id, newStatus) => {
+            const orderDoc = doc(db, "orders", id);
+            try {
+                await updateDoc(orderDoc, { status: newStatus });
+            } catch (error) {
+                console.error("Lỗi khi cập nhật trạng thái: ", error);
+            }
+        };
+
+        // XÓA ĐƠN HÀNG
+        window.deleteOrder = async (id) => {
+            if (confirm("Bạn có chắc chắn muốn xóa đơn hàng này không?")) {
+                const orderDoc = doc(db, "orders", id);
+                try {
+                    await deleteDoc(orderDoc);
+                } catch (error) {
+                    console.error("Lỗi khi xóa đơn hàng: ", error);
+                }
+            }
+        };
+    </script>
+</body>
+</html>
