@@ -89,6 +89,7 @@
             padding: 6px 10px;
             border-radius: 6px;
             border: 1px dashed #d1c7bd;
+            display: none;
         }
 
         /* --- THIẾT KẾ NÚT BẤM --- */
@@ -102,12 +103,18 @@
             padding: 12px 45px;
             letter-spacing: 1px;
             text-transform: uppercase;
-            transition: transform 80ms ease-in;
+            transition: transform 80ms ease-in, background-color 0.2s;
             cursor: pointer;
             margin-top: 15px;
         }
 
-        button:active {
+        button:disabled {
+            background-color: #a38f81;
+            border-color: #a38f81;
+            cursor: not-allowed;
+        }
+
+        button:active:not(:disabled) {
             transform: scale(0.95);
         }
 
@@ -233,8 +240,8 @@
             <form id="registerForm" onsubmit="window.handleRegister(event)">
                 <h2>Tạo Tài Khoản</h2>
                 <input type="email" id="regEmail" placeholder="Email tài khoản" required />
-                <input type="password" id="regPass" placeholder="Mật khẩu (ít nhất 6 ký tự)" required />
-                <button type="submit">Đăng Ký</button>
+                <input type="password" id="regPass" placeholder="Mật khẩu (ít nhất 6 ký tự)" required minlength="6" />
+                <button type="submit" id="regBtn">Đăng Ký</button>
             </form>
         </div>
 
@@ -245,7 +252,7 @@
                 <input type="email" id="loginEmail" placeholder="Email đăng nhập" required />
                 <input type="password" id="loginPass" placeholder="Mật khẩu" required />
                 <div class="random-account-hint" id="accountHint"></div>
-                <button type="submit">Đăng Nhập</button>
+                <button type="submit" id="loginBtn">Đăng Nhập</button>
             </form>
         </div>
 
@@ -276,7 +283,6 @@
             signInWithEmailAndPassword 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        // Cấu hình Firebase dự án của bạn
         const firebaseConfig = {
             apiKey: "AIzaSyADANpAqzaifukcbwwNIF6LubLxYI7GnTw",
             authDomain: "jsi34-e00ed.firebaseapp.com",
@@ -287,7 +293,6 @@
             measurementId: "G-KJVJGMN45K"
         };
 
-        // Khởi tạo Firebase Auth
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
@@ -300,20 +305,27 @@
             container.classList.remove("right-panel-active");
         });
 
-        // XỬ LÝ ĐĂNG KÝ VỚI FIREBASE
+        // XỬ LÝ ĐĂNG KÝ
         window.handleRegister = async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('regBtn');
             const email = document.getElementById('regEmail').value.trim();
             const pass = document.getElementById('regPass').value.trim();
 
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                btn.disabled = true;
+                btn.innerText = "Đang xử lý...";
+                
+                await createUserWithEmailAndPassword(auth, email, pass);
                 alert("🎉 Đăng ký tài khoản Firebase thành công! Bạn có thể đăng nhập ngay.");
                 
-                // Tự động điền email vừa đăng ký sang form đăng nhập
+                // Điền thông tin sang form đăng nhập
                 document.getElementById('loginEmail').value = email;
                 document.getElementById('loginPass').value = pass;
-                document.getElementById('accountHint').innerHTML = `Tài khoản bạn vừa đăng ký:<br><b>${email}</b>`;
+                
+                const hint = document.getElementById('accountHint');
+                hint.style.display = "block";
+                hint.innerHTML = `Tài khoản vừa đăng ký:<br><b>${email}</b>`;
                 
                 container.classList.remove("right-panel-active");
                 document.getElementById('registerForm').reset();
@@ -322,28 +334,37 @@
                 if (error.code === 'auth/email-already-in-use') {
                     alert("❌ Email này đã được đăng ký trước đó!");
                 } else if (error.code === 'auth/weak-password') {
-                    alert("❌ Mật khẩu !");
+                    alert("❌ Mật khẩu quá yếu! Phải có ít nhất 6 ký tự.");
                 } else {
                     alert("❌ Đăng ký thất bại: " + error.message);
                 }
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Đăng Ký";
             }
         };
 
-        // XỬ LÝ ĐĂNG NHẬP VỚI FIREBASE
+        // XỬ LÝ ĐĂNG NHẬP
         window.handleLogin = async (e) => {
             e.preventDefault();
+            const btn = document.getElementById('loginBtn');
             const email = document.getElementById('loginEmail').value.trim();
             const pass = document.getElementById('loginPass').value.trim();
 
             try {
+                btn.disabled = true;
+                btn.innerText = "Đang xử lý...";
+
                 const userCredential = await signInWithEmailAndPassword(auth, email, pass);
                 alert(`👋 Đăng nhập thành công! Chào mừng ${userCredential.user.email}`);
                 
-                // Chuyển hướng sang trang quản lý đơn hàng
                 window.location.href = "index.html";
             } catch (error) {
                 console.error("Lỗi đăng nhập:", error);
                 alert("❌ Sai email hoặc mật khẩu, hoặc tài khoản chưa được đăng ký!");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Đăng Nhập";
             }
         };
     </script>
