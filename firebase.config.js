@@ -41,7 +41,22 @@ const products = [
         name: "Trà chanh",
         price: 15000,
         image: "tra-chanh-kim-quat-removebg-preview.png"
-    }
+    },
+    {      
+        name: "Trà đào cam sả",
+        price: 48000,
+        image: "cach-lam-tra-dao-cam-sa-removebg-preview.png"
+    },
+    {
+        name: "Trà sữa việt quất",
+        price: 40000,
+        image: "thanh-pham-1246-removebg-preview.png"
+    },
+    {
+        name: "Matcha latte",
+        price: 35000,
+        image: "Iced-Matcha-Latte-6527.jpg"
+    },
 ];
 
 // Export tất cả biến & hàm cần thiết
