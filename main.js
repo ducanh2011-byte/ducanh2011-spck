@@ -1,13 +1,18 @@
 // main.js
+import { db, auth } from "./firebase.config.js";
 import { 
-    db, 
     collection, 
     addDoc, 
     onSnapshot, 
     updateDoc, 
     deleteDoc, 
-    doc 
-} from "../firebase-config.js";
+    doc, 
+    query, 
+    orderBy, 
+    serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Viết toàn bộ code lắng nghe Realtime, thêm/sửa/xóa đơn hàng, đóng/mở Modal tại đây...
 
 // References đến các Collection
 const ordersRef = collection(db, "orders");

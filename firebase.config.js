@@ -24,6 +24,7 @@ const firebaseConfig = {
 // Khởi tạo Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // Danh sách sản phẩm (Export để các file khác gọi sử dụng)
 const products = [
