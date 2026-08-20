@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bean House - Cà phê giao tận nơi</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="site-header">
+        <nav class="nav-bar">
+            <a class="brand" href="index.html">Bean House</a>
+            <div class="nav-links" aria-label="Điều hướng chính">
+                <a href="#menu">Menu</a>
+                <a href="#about">Về Bean House</a>
+                <a href="#contact">Liên hệ</a>
+            </div>
+            <div class="nav-actions">
+                <span id="userEmail" class="user-email">Đang kiểm tra tài khoản...</span>
+                <button id="logoutBtn" class="button button-ghost" type="button">Đăng xuất</button>
+            </div>
+        </nav>
+
+        <section class="hero">
+            <div class="hero-content">
+                <p class="eyebrow">Fresh coffee every day</p>
+                <h1>Cà phê rang mới, pha chuẩn vị, giao đến bạn.</h1>
+                <p>Chọn món yêu thích từ Bean House và thêm vào giỏ hàng. Dữ liệu sản phẩm được lấy trực tiếp từ Firebase Firestore.</p>
+                <a class="button button-primary" href="#menu">Xem menu</a>
+            </div>
+        </section>
+    </header>
+
+    <main>
+        <section id="menu" class="menu-section">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Coffee menu</p>
+                    <h2>Menu cà phê</h2>
+                    <p>Danh sách sản phẩm đang bán được đọc realtime từ collection <strong>coffee</strong>.</p>
+                </div>
+                <button id="clearCartBtn" class="button button-muted" type="button">Xóa giỏ hàng</button>
+            </div>
+
+            <div class="shop-layout">
+                <section id="productGrid" class="product-grid" aria-live="polite">
+                    <p class="empty-state">Đang tải sản phẩm...</p>
+                </section>
+
+                <aside class="cart-panel" aria-label="Giỏ hàng">
+                    <div class="cart-heading">
+                        <div>
+                            <p class="eyebrow">Your cart</p>
+                            <h2>Giỏ hàng</h2>
+                        </div>
+                        <span id="cartCount" class="cart-count">0</span>
+                    </div>
+
+                    <div id="cartItems" class="cart-items">
+                        <p class="empty-state compact">Giỏ hàng đang trống.</p>
+                    </div>
+
+                    <div class="cart-total">
+                        <span>Tổng tiền</span>
+                        <strong id="cartTotal">0 đ</strong>
+                    </div>
+
+                    <button id="checkoutBtn" class="button button-primary full-width" type="button">Đặt hàng</button>
+                    <p id="checkoutMessage" class="checkout-message" role="status"></p>
+                </aside>
+            </div>
+        </section>
+
+        <section id="about" class="about-section">
+            <div class="about-grid">
+                <article>
+                    <p class="eyebrow">Why Bean House</p>
+                    <h2>Cà phê cho nhịp sống mỗi ngày</h2>
+                    <p>Bean House tập trung vào các món cà phê dễ uống, giá rõ ràng và hình ảnh sản phẩm trực quan để khách chọn món nhanh hơn.</p>
+                </article>
+                <article>
+                    <strong>Rang mới</strong>
+                    <span>Hương vị cân bằng, phù hợp uống nóng hoặc đá.</span>
+                </article>
+                <article>
+                    <strong>Menu realtime</strong>
+                    <span>Sản phẩm được đồng bộ trực tiếp từ Firebase Firestore.</span>
+                </article>
+                <article>
+                    <strong>Giỏ hàng nhanh</strong>
+                    <span>Thêm món, tăng giảm số lượng và xem tổng tiền ngay trên trang.</span>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer id="contact" class="site-footer">
+        <div class="footer-grid">
+            <section>
+                <a class="brand footer-brand" href="index.html">Bean House</a>
+                <p>Cà phê rang mới, pha chuẩn vị và phục vụ nhanh cho khách hàng yêu cà phê mỗi ngày.</p>
+            </section>
+
+            <section>
+                <h2>Liên hệ</h2>
+                <p>Email: hello@beanhouse.vn</p>
+                <p>Hotline: 0900 123 456</p>
+                <p>Địa chỉ: 24 Coffee Street, TP. Hồ Chí Minh</p>
+            </section>
+
+            <section>
+                <h2>Giờ mở cửa</h2>
+                <p>Thứ 2 - Thứ 6: 07:00 - 21:00</p>
+                <p>Thứ 7 - Chủ nhật: 08:00 - 22:00</p>
+            </section>
+        </div>
+
+        <div class="footer-bottom">
+            <span>© 2026 Bean House.</span>
+            <span>Powered by Firebase Authentication & Firestore.</span>
+        </div>
+    </footer>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

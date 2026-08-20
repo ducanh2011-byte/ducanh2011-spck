@@ -3,370 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Cà Phê - Đăng Nhập & Đăng Ký</title>
-    <style>
-        /* --- CẤU HÌNH GIAO DIỆN CHUNG --- */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: #f4f1ea;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
-                              url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1478&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        h1 {
-            color: #ffffff;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-            font-size: 2rem;
-            letter-spacing: 2px;
-        }
-
-        /* --- CONTAINER CHÍNH CHỨA CẢ 2 FORM --- */
-        .container {
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-            position: relative;
-            overflow: hidden;
-            width: 768px;
-            max-width: 100%;
-            min-height: 480px;
-        }
-
-        /* --- THIẾT KẾ FORM CƠ BẢN --- */
-        .form-container {
-            position: absolute;
-            top: 0;
-            height: 100%;
-            transition: all 0.6s ease-in-out;
-        }
-
-        form {
-            background-color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 0 50px;
-            height: 100%;
-            text-align: center;
-        }
-
-        form h2 {
-            color: #5c3a21;
-            margin-bottom: 15px;
-        }
-
-        input {
-            background-color: #f0ece3;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 15px;
-            margin: 8px 0;
-            width: 100%;
-            outline: none;
-            font-size: 14px;
-        }
-
-        .random-account-hint {
-            font-size: 12px;
-            color: #8b5a2b;
-            margin-top: 5px;
-            background-color: #fbf8f3;
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 1px dashed #d1c7bd;
-            display: none;
-        }
-
-        /* --- THIẾT KẾ NÚT BẤM --- */
-        button {
-            border-radius: 20px;
-            border: 1px solid #5c3a21;
-            background-color: #5c3a21;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: bold;
-            padding: 12px 45px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: transform 80ms ease-in, background-color 0.2s;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        button:disabled {
-            background-color: #a38f81;
-            border-color: #a38f81;
-            cursor: not-allowed;
-        }
-
-        button:active:not(:disabled) {
-            transform: scale(0.95);
-        }
-
-        button.ghost {
-            background-color: transparent;
-            border-color: #ffffff;
-            color: #ffffff;
-        }
-
-        .sign-in-container {
-            left: 0;
-            width: 50%;
-            z-index: 2;
-        }
-
-        .sign-up-container {
-            left: 0;
-            width: 50%;
-            opacity: 0;
-            z-index: 1;
-        }
-
-        /* --- HIỆU ỨNG CHUYỂN ĐỘNG --- */
-        .container.right-panel-active .sign-in-container {
-            transform: translateX(100%);
-        }
-
-        .container.right-panel-active .sign-up-container {
-            transform: translateX(100%);
-            opacity: 1;
-            z-index: 5;
-            animation: show 0.6s;
-        }
-
-        @keyframes show {
-            0%, 49.99% { opacity: 0; z-index: 1; }
-            50%, 100% { opacity: 1; z-index: 5; }
-        }
-
-        .overlay-container {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            width: 50%;
-            height: 100%;
-            overflow: hidden;
-            transition: transform 0.6s ease-in-out;
-            z-index: 100;
-        }
-
-        .container.right-panel-active .overlay-container {
-            transform: translateX(-100%);
-        }
-
-        .overlay {
-            background: #5c3a21;
-            background: linear-gradient(to right, #8B5A2B, #5c3a21);
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: 0 0;
-            color: #ffffff;
-            position: relative;
-            left: -100%;
-            height: 100%;
-            width: 200%;
-            transform: translateX(0);
-            transition: transform 0.6s ease-in-out;
-        }
-
-        .container.right-panel-active .overlay {
-            transform: translateX(50%);
-        }
-
-        .overlay-panel {
-            position: absolute;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            padding: 0 40px;
-            text-align: center;
-            top: 0;
-            height: 100%;
-            width: 50%;
-            transform: translateX(0);
-            transition: transform 0.6s ease-in-out;
-        }
-
-        .overlay-left {
-            transform: translateX(-200%);
-        }
-
-        .container.right-panel-active .overlay-left {
-            transform: translateX(0);
-        }
-
-        .overlay-right {
-            right: 0;
-            transform: translateX(0);
-        }
-
-        .container.right-panel-active .overlay-right {
-            transform: translateX(200%);
-        }
-
-        .overlay-panel p {
-            font-size: 14px;
-            font-weight: 300;
-            line-height: 20px;
-            letter-spacing: 0.5px;
-            margin: 20px 0 30px;
-        }
-    </style>
+    <title>Bean House - Tài khoản khách hàng</title>
+    <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
+    <main class="auth-page">
+        <section class="brand-panel">
+            <p class="eyebrow">Bean House</p>
+            <h1>Tài khoản khách hàng Bean House</h1>
+            <p>Đăng nhập bằng Firebase Authentication để xem menu cà phê và tạo giỏ hàng của bạn.</p>
+        </section>
 
-    <h1>☕ COFFEE HOUSE SYSTEMS</h1>
-
-    <div class="container" id="container">
-        
-        <!-- FORM ĐĂNG KÝ -->
-        <div class="form-container sign-up-container">
-            <form id="registerForm" onsubmit="window.handleRegister(event)">
-                <h2>Tạo Tài Khoản</h2>
-                <input type="email" id="regEmail" placeholder="Email tài khoản" required />
-                <input type="password" id="regPass" placeholder="Mật khẩu (ít nhất 6 ký tự)" required minlength="6" />
-                <button type="submit" id="regBtn">Đăng Ký</button>
-            </form>
-        </div>
-
-        <!-- FORM ĐĂNG NHẬP -->
-        <div class="form-container sign-in-container">
-            <form id="loginForm" onsubmit="window.handleLogin(event)">
-                <h2>Đăng Nhập</h2>
-                <input type="email" id="loginEmail" placeholder="Email đăng nhập" required />
-                <input type="password" id="loginPass" placeholder="Mật khẩu" required />
-                <div class="random-account-hint" id="accountHint"></div>
-                <button type="submit" id="loginBtn">Đăng Nhập</button>
-            </form>
-        </div>
-
-        <!-- OVERLAY PANEL -->
-        <div class="overlay-container">
-            <div class="overlay">
-                <div class="overlay-panel overlay-left">
-                    <h2>Chào mừng trở lại!</h2>
-                    <p>Nếu bạn đã có tài khoản quản lý, vui lòng đăng nhập tại đây.</p>
-                    <button class="ghost" id="signIn">Đăng Nhập</button>
-                </div>
-                <div class="overlay-panel overlay-right">
-                    <h2>Xin chào bạn!</h2>
-                    <p>Chưa có tài khoản nhân viên? Đăng ký ngay để bắt đầu quản lý quán cà phê của bạn.</p>
-                    <button class="ghost" id="signUp">Đăng Ký</button>
-                </div>
+        <section class="auth-card">
+            <div class="tabs" aria-label="Chọn chế độ tài khoản">
+                <button id="showLoginBtn" class="tab active" type="button">Đăng nhập</button>
+                <button id="showRegisterBtn" class="tab" type="button">Đăng ký</button>
             </div>
-        </div>
 
-    </div>
+            <form id="loginForm" class="auth-form">
+                <h2>Đăng nhập</h2>
+                <label>
+                    Email
+                    <input id="loginEmail" type="email" autocomplete="email" required>
+                </label>
+                <label>
+                    Mật khẩu
+                    <input id="loginPassword" type="password" autocomplete="current-password" required>
+                </label>
+                <button id="loginSubmitBtn" class="button" type="submit">Đăng nhập</button>
+            </form>
 
-    <!-- SCRIPT TÍCH HỢP FIREBASE AUTHENTICATION -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+            <form id="registerForm" class="auth-form hidden">
+                <h2>Tạo tài khoản</h2>
+                <label>
+                    Email
+                    <input id="registerEmail" type="email" autocomplete="email" required>
+                </label>
+                <label>
+                    Mật khẩu
+                    <input id="registerPassword" type="password" minlength="6" autocomplete="new-password" required>
+                </label>
+                <button id="registerSubmitBtn" class="button" type="submit">Đăng ký</button>
+            </form>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyADANpAqzaifukcbwwNIF6LubLxYI7GnTw",
-            authDomain: "jsi34-e00ed.firebaseapp.com",
-            projectId: "jsi34-e00ed",
-            storageBucket: "jsi34-e00ed.firebasestorage.app",
-            messagingSenderId: "958660106818",
-            appId: "1:958660106818:web:7dc1bdc5a2415ac4cdebdb",
-            measurementId: "G-KJVJGMN45K"
-        };
+            <p id="authMessage" class="message" role="status"></p>
+        </section>
+    </main>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // Hiệu ứng trượt giao diện
-        const container = document.getElementById('container');
-        document.getElementById('signUp').addEventListener('click', () => {
-            container.classList.add("right-panel-active");
-        });
-        document.getElementById('signIn').addEventListener('click', () => {
-            container.classList.remove("right-panel-active");
-        });
-
-        // XỬ LÝ ĐĂNG KÝ
-        window.handleRegister = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('regBtn');
-            const email = document.getElementById('regEmail').value.trim();
-            const pass = document.getElementById('regPass').value.trim();
-
-            try {
-                btn.disabled = true;
-                btn.innerText = "Đang xử lý...";
-                
-                await createUserWithEmailAndPassword(auth, email, pass);
-                alert("🎉 Đăng ký tài khoản Firebase thành công! Bạn có thể đăng nhập ngay.");
-                
-                // Điền thông tin sang form đăng nhập
-                document.getElementById('loginEmail').value = email;
-                document.getElementById('loginPass').value = pass;
-                
-                const hint = document.getElementById('accountHint');
-                hint.style.display = "block";
-                hint.innerHTML = `Tài khoản vừa đăng ký:<br><b>${email}</b>`;
-                
-                container.classList.remove("right-panel-active");
-                document.getElementById('registerForm').reset();
-            } catch (error) {
-                console.error("Lỗi đăng ký:", error);
-                if (error.code === 'auth/email-already-in-use') {
-                    alert("❌ Email này đã được đăng ký trước đó!");
-                } else if (error.code === 'auth/weak-password') {
-                    alert("❌ Mật khẩu quá yếu! Phải có ít nhất 6 ký tự.");
-                } else {
-                    alert("❌ Đăng ký thất bại: " + error.message);
-                }
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Đăng Ký";
-            }
-        };
-
-        // XỬ LÝ ĐĂNG NHẬP
-        window.handleLogin = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('loginBtn');
-            const email = document.getElementById('loginEmail').value.trim();
-            const pass = document.getElementById('loginPass').value.trim();
-
-            try {
-                btn.disabled = true;
-                btn.innerText = "Đang xử lý...";
-
-                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-                alert(`👋 Đăng nhập thành công! Chào mừng ${userCredential.user.email}`);
-                
-                window.location.href = "index.html";
-            } catch (error) {
-                console.error("Lỗi đăng nhập:", error);
-                alert("❌ Sai email hoặc mật khẩu, hoặc tài khoản chưa được đăng ký!");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Đăng Nhập";
-            }
-        };
-    </script>
+    <script type="module" src="js/auth.js"></script>
 </body>
 </html>
