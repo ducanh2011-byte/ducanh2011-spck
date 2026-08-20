@@ -126,6 +126,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sản phẩm</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng tiền</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
                         </tr>
                     </thead>
                     <tbody id="orderTableBody" class="bg-white divide-y divide-gray-200">
@@ -152,7 +153,7 @@
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Tổng tiền (VNĐ)</label>
-                    <input type="number" id="total" required placeholder="0" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" id="total" required placeholder="0" min="0" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2">Trạng thái</label>
@@ -178,10 +179,12 @@
             onSnapshot, 
             updateDoc, 
             deleteDoc, 
-            doc 
+            doc,
+            query,
+            orderBy,
+            serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Cấu hình Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyADANpAqzaifukcbwwNIF6LubLxYI7GnTw",
             authDomain: "jsi34-e00ed.firebaseapp.com",
@@ -192,19 +195,15 @@
             measurementId: "G-KJVJGMN45K"
         };
 
-        // Khởi tạo Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const ordersRef = collection(db, "orders");
 
-        // Trạng thái đơn hàng
         const STATUS_OPTIONS = ["Chờ xử lý", "Đang pha chế", "Đang giao", "Đã giao"];
 
-        // Đổ danh sách trạng thái vào select của modal
         const statusSelectInModal = document.getElementById("status");
         statusSelectInModal.innerHTML = STATUS_OPTIONS.map(st => `<option value="${st}">${st}</option>`).join('');
 
-        // Bật/Tắt Modal
         window.toggleModal = (show) => {
             const modal = document.getElementById("orderModal");
             if (show) {
@@ -215,17 +214,18 @@
             }
         };
 
-        // Đặt hàng nhanh từ Menu sản phẩm
         window.quickOrder = (productName, price) => {
             document.getElementById("product").value = productName;
             document.getElementById("total").value = price;
             window.toggleModal(true);
         };
 
-        // LẮNG NGHE REALTIME TỪ FIRESTORE
-        onSnapshot(ordersRef, (snapshot) => {
+        // Lắng nghe realtime và sắp xếp theo thời gian mới nhất
+        const ordersQuery = query(ordersRef, orderBy("createdAt", "desc"));
+
+        onSnapshot(ordersQuery, (snapshot) => {
             const tableBody = document.getElementById("orderTableBody");
-            tableBody.innerHTML = "";
+            let rowsHtml = "";
 
             snapshot.forEach((docSnap) => {
                 const order = docSnap.data();
@@ -240,12 +240,12 @@
                     `<option value="${st}" ${order.status === st ? 'selected' : ''}>${st}</option>`
                 ).join('');
 
-                const row = `
+                rowsHtml += `
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">#${id.substring(0, 6)}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.customerName}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.product}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${Number(order.total).toLocaleString('vi-VN')} đ</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${order.customerName || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${order.product || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${Number(order.total || 0).toLocaleString('vi-VN')} đ</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
                                 ${order.status}
@@ -259,11 +259,11 @@
                         </td>
                     </tr>
                 `;
-                tableBody.innerHTML += row;
             });
+
+            tableBody.innerHTML = rowsHtml;
         });
 
-        // THÊM ĐƠN HÀNG
         window.addOrder = async (event) => {
             event.preventDefault();
             const customerName = document.getElementById("customerName").value;
@@ -277,7 +277,7 @@
                     product,
                     total: Number(total),
                     status,
-                    createdAt: new Date()
+                    createdAt: serverTimestamp() // Dùng serverTimestamp để chuẩn xác thời gian tạo
                 });
                 window.toggleModal(false);
             } catch (error) {
@@ -285,7 +285,6 @@
             }
         };
 
-        // CẬP NHẬT TRẠNG THÁI
         window.updateStatus = async (id, newStatus) => {
             const orderDoc = doc(db, "orders", id);
             try {
@@ -295,7 +294,6 @@
             }
         };
 
-        // XÓA ĐƠN HÀNG
         window.deleteOrder = async (id) => {
             if (confirm("Bạn có chắc chắn muốn xóa đơn hàng này không?")) {
                 const orderDoc = doc(db, "orders", id);
